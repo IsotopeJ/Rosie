@@ -17,27 +17,27 @@
 
 class FUTABA_SBUS
 {
-	public:
-		uint8_t mFailsafeStatus;
-		bool mSbusPassthrough;
-		int mToChannels;
+  public:
+    uint8_t mFailsafeStatus;
+    bool mSbusPassthrough;
+    int mToChannels;
 
-		void begin(void);
-		int16_t Channel(uint8_t ch);
-		uint8_t DigiChannel(uint8_t ch);
-		void Servo(uint8_t ch, int16_t position);
-		void DigiServo(uint8_t ch, uint8_t position);
-		uint8_t Failsafe(void);
-		void UpdateServos(void);
-		void UpdateChannels(void);
-		void FeedLine(void);
+    void begin(void);
+    int16_t Channel(uint8_t ch);
+    uint8_t DigiChannel(uint8_t ch);
+    void Servo(uint8_t ch, int16_t position);
+    void DigiServo(uint8_t ch, uint8_t position);
+    uint8_t Failsafe(void);
+    void UpdateServos(void);
+    void UpdateChannels(void);
+    void FeedLine(void);
 
-	private:
-		uint8_t mSbusData[25];
-		int16_t mChannels[18];
-		int16_t mServos[18];
-		int mBufferIndex;
-		int mFeedState;
+  private:
+    uint8_t mSbusData[25];
+    int16_t mChannels[18];
+    int16_t mServos[18];
+    int mBufferIndex;
+    int mFeedState;
 };
 
 #endif

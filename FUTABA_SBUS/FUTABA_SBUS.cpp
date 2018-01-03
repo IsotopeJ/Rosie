@@ -1,32 +1,32 @@
 #include "FUTABA_SBUS.h"
 
 void FUTABA_SBUS::begin() {
-	uint8_t loc_sbusData[25] = {
+  uint8_t loc_sbusData[25] = {
     0x0f, 0x01, 0x04, 0x20, 0x00, 0xff, 0x07, 0x40,
     0x00, 0x02, 0x10, 0x80, 0x2c, 0x64, 0x21, 0x0b,
     0x59, 0x08, 0x40, 0x00, 0x02, 0x10, 0x80, 0x00,
     0x00
   };
-	int16_t loc_channels[18] = {
+  int16_t loc_channels[18] = {
     1023, 1023, 1023, 1023, 1023, 1023, 1023, 1023,
     1023, 1023, 1023, 1023, 1023, 1023, 1023, 1023,
     0, 0
   };
-	int16_t loc_servos[18] = {
+  int16_t loc_servos[18] = {
     1023, 1023, 1023, 1023, 1023, 1023, 1023, 1023,
     1023, 1023, 1023, 1023, 1023, 1023, 1023, 1023,
     0, 0};
 
   port.begin(BAUDRATE);
 
-	memcpy(mSbusData, loc_sbusData,25);
-	memcpy(mChannels, loc_channels,18);
-	memcpy(mServos, loc_servos,18);
-	mFailsafeStatus = SBUS_SIGNAL_OK;
-	mSbusPassthrough = true;
-	mToChannels = 0;
-	mBufferIndex = 0;
-	mFeedState = 0;
+  memcpy(mSbusData, loc_sbusData,25);
+  memcpy(mChannels, loc_channels,18);
+  memcpy(mServos, loc_servos,18);
+  mFailsafeStatus = SBUS_SIGNAL_OK;
+  mSbusPassthrough = true;
+  mToChannels = 0;
+  mBufferIndex = 0;
+  mFeedState = 0;
 }
 
 // Read channel data
@@ -79,7 +79,7 @@ void FUTABA_SBUS::UpdateServos(void) {
     }
 
     // reset counters
-		ch = 0;
+    ch = 0;
     bit_in_servo = 0;
     byte_in_sbus = 1;
     bit_in_sbus = 0;
