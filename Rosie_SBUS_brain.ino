@@ -127,8 +127,6 @@ void loop()
     {
       digitalWrite(CANNON, 1);
     }
-    
-    
-    //Serial<<sBus.channels[0]<<","<<sBus.channels[1]<<","<<sBus.channels[2]<<","<<sBus.channels[3]<<","<<sBus.channels[4]<<","<<sBus.channels[5]<<","<<sBus.channels[6]<<"\r\n";
+
   }
 }
