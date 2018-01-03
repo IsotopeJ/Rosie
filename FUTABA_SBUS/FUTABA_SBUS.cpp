@@ -1,59 +1,62 @@
 #include "FUTABA_SBUS.h"
 
-void FUTABA_SBUS::begin(){
+void FUTABA_SBUS::begin() {
 	uint8_t loc_sbusData[25] = {
-	  0x0f,0x01,0x04,0x20,0x00,0xff,0x07,0x40,0x00,0x02,0x10,0x80,0x2c,0x64,0x21,0x0b,0x59,0x08,0x40,0x00,0x02,0x10,0x80,0x00,0x00};
-	int16_t loc_channels[18]  = {
-	  		1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,0,0};
-	int16_t loc_servos[18]    = {
-  			1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,1023,0,0};
-  	port.begin(BAUDRATE);
+    0x0f, 0x01, 0x04, 0x20, 0x00, 0xff, 0x07, 0x40,
+    0x00, 0x02, 0x10, 0x80, 0x2c, 0x64, 0x21, 0x0b,
+    0x59, 0x08, 0x40, 0x00, 0x02, 0x10, 0x80, 0x00,
+    0x00
+  };
+	int16_t loc_channels[18] = {
+    1023, 1023, 1023, 1023, 1023, 1023, 1023, 1023,
+    1023, 1023, 1023, 1023, 1023, 1023, 1023, 1023,
+    0, 0
+  };
+	int16_t loc_servos[18] = {
+    1023, 1023, 1023, 1023, 1023, 1023, 1023, 1023,
+    1023, 1023, 1023, 1023, 1023, 1023, 1023, 1023,
+    0, 0};
 
-	memcpy(sbusData,loc_sbusData,25);
-	memcpy(channels,loc_channels,18);
-	memcpy(servos,loc_servos,18);
+  port.begin(BAUDRATE);
+
+	memcpy(sbusData, loc_sbusData,25);
+	memcpy(channels, loc_channels,18);
+	memcpy(servos, loc_servos,18);
 	failsafe_status = SBUS_SIGNAL_OK;
 	sbus_passthrough = 1;
 	toChannels = 0;
-	bufferIndex=0;
+	bufferIndex = 0;
 	feedState = 0;
 }
 
+// Read channel data
 int16_t FUTABA_SBUS::Channel(uint8_t ch) {
-  // Read channel data
-  if ((ch>0)&&(ch<=16)){
-    return channels[ch-1];
-  }
-  else{
-    return 1023;
-  }
+  if (ch < 0) return 1023;
+  if (ch >= 16) return 1023;
+  return channels[ch - 1];
 }
+
+// Read digital channel data
 uint8_t FUTABA_SBUS::DigiChannel(uint8_t ch) {
-  // Read digital channel data
-  if ((ch>0) && (ch<=2)) {
-    return channels[15+ch];
-  }
-  else{
-    return 0;
-  }
+  if (ch < 0) return 0;
+  if (ch >= 2) return 0;
+  return channels[15 + ch];
 }
+
+// Set servo position
 void FUTABA_SBUS::Servo(uint8_t ch, int16_t position) {
-  // Set servo position
-  if ((ch>0)&&(ch<=16)) {
-    if (position>2048) {
-      position=2048;
-    }
-    servos[ch-1] = position;
-  }
+  if (ch < 0) return;
+  if (ch >= 16) return;
+  if (position > 2048) position = 2048;
+  servos[ch - 1] = position;
 }
+
+// Set digital servo position
 void FUTABA_SBUS::DigiServo(uint8_t ch, uint8_t position) {
-  // Set digital servo position
-  if ((ch>0) && (ch<=2)) {
-    if (position>1) {
-      position=1;
-    }
-    servos[15+ch] = position;
-  }
+  if (ch < 0) return;
+  if (ch >= 2) return;
+  if (position > 1) position = 1;
+  servos[15 + ch] = position;
 }
 uint8_t FUTABA_SBUS::Failsafe(void) {
   return failsafe_status;
@@ -68,6 +71,7 @@ int FUTABA_SBUS::PassthroughRet(void) {
   // Return current passthrough mode
   return sbus_passthrough;
 }
+
 void FUTABA_SBUS::UpdateServos(void) {
   // Send data to servos
   // Passtrough mode = false >> send own servo data
@@ -107,6 +111,7 @@ void FUTABA_SBUS::UpdateServos(void) {
     if (channels[16] == 1) {
       sbusData[23] |= (1<<0);
     }
+
     // DigiChannel 2
     if (channels[17] == 1) {
       sbusData[23] |= (1<<1);
@@ -128,6 +133,7 @@ void FUTABA_SBUS::UpdateServos(void) {
     port.write(sbusData[i]);
   }
 }
+
 void FUTABA_SBUS::UpdateChannels(void) {
   //uint8_t i;
   //uint8_t sbus_pointer = 0;
@@ -202,40 +208,42 @@ void FUTABA_SBUS::UpdateChannels(void) {
   }
 
 }
+
 void FUTABA_SBUS::FeedLine(void){
-  if (port.available() > 24){		//check to see if 25 or more characters are available at the serial port
-    while(port.available() > 0){	//loop while available characters
-      inData = port.read();
-      switch (feedState){
-      case 0:					//feedState = 0 indicates start of a packet
-        if (inData != 0x0f){				//if first byte isn't 0x0F this is a problem
-          while(port.available() > 0){		 	//read the contents of in buffer this should resync the transmission
-            inData = port.read();
-          }
-          return;
+  //check to see if 25 or more characters are available at the serial port
+  if (port.available() < 25) return;
+
+  //loop while available characters
+  while(port.available() > 0) {
+    inData = port.read();
+    switch (feedState){
+    case 0:					//feedState = 0 indicates start of a packet
+      if (inData != 0x0f){				//if first byte isn't 0x0F this is a problem
+        while(port.available() > 0) { //read the contents of in buffer this should resync the transmission
+          inData = port.read();
         }
-        else{					//feedState = 0, and first byte IS 0x0F (all good)
-          bufferIndex = 0;				//read first byte, set last byte in buffer = 24, set feedState = 1
-          inBuffer[bufferIndex] = inData;
-          inBuffer[24] = 0xff;
-          feedState = 1;
-        }
-        break;
-      case 1:					//feedState = 1, we're in the middle of a packet, read the next byte
-        bufferIndex ++;
+        return;
+      } else {					//feedState = 0, and first byte IS 0x0F (all good)
+        bufferIndex = 0;				//read first byte, set last byte in buffer = 24, set feedState = 1
         inBuffer[bufferIndex] = inData;
-        if (bufferIndex < 24 && port.available() == 0){	//we're reading a packet. if no more bytes coming, reset feedState to 0 (problem)
-          feedState = 0;
-        }
-        if (bufferIndex == 24){				//we're at 24 characters, end of packet.  set feedstate to 0, update sbusData array, set toChannels = 1
-          feedState = 0;
-          if (inBuffer[0]==0x0f && inBuffer[24] == 0x00){	
-            memcpy(sbusData,inBuffer,25);
-            toChannels = 1;
-          }
-        }
-        break;
+        inBuffer[24] = 0xff;
+        feedState = 1;
       }
+      break;
+    case 1:					//feedState = 1, we're in the middle of a packet, read the next byte
+      bufferIndex ++;
+      inBuffer[bufferIndex] = inData;
+      if (bufferIndex < 24 && port.available() == 0){	//we're reading a packet. if no more bytes coming, reset feedState to 0 (problem)
+        feedState = 0;
+      }
+      if (bufferIndex == 24){				//we're at 24 characters, end of packet.  set feedstate to 0, update sbusData array, set toChannels = 1
+        feedState = 0;
+        if (inBuffer[0]==0x0f && inBuffer[24] == 0x00){
+          memcpy(sbusData,inBuffer,25);
+          toChannels = 1;
+        }
+      }
+      break;
     }
   }
 }
