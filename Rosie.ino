@@ -1,8 +1,8 @@
 /*
 *
-*  The output of the SBUS receiver goes into one of the inputs on an inverter (74HC14). 
-*  The output from that input goes into the serial port. 
-*  The output of the serial port you are using goes into the inverter and the output will drive SBUS servos. 
+*  The output of the SBUS receiver goes into one of the inputs on an inverter (74HC14).
+*  The output from that input goes into the serial port.
+*  The output of the serial port you are using goes into the inverter and the output will drive SBUS servos.
 *  You must have a common ground to all the devices. It is best to run the servos from a different power supply than the arduino.
 *
 *  http://forum.arduino.cc/index.php?PHPSESSID=eoc1g2c2rf7lq1jl5legq7fij0&topic=99708.15
@@ -32,9 +32,9 @@ FUTABA_SBUS sBus;
 void setup()
 {
   sBus.begin();            //setup serial port, intialize arrays and variables
-  sBus.PassthroughSet(1);  //enabled by default, disable to send own data using UpdateServos() instead
+  sBus.mSbusPassthrough = true;  //enabled by default, disable to send own data using UpdateServos() instead
  // Serial.begin(115200);
-  
+
   //pinMode(CH5_DOWN, OUTPUT);
   //pinMode(CH5_UP, OUTPUT);
   pinMode(FLIPPER_DIRECTION, OUTPUT);
@@ -42,7 +42,7 @@ void setup()
   pinMode(FLOWER_FAN, OUTPUT);
   pinMode(FLOWER_DISPENSER, OUTPUT);
   pinMode(CANNON, OUTPUT);
-  
+
   //digitalWrite(CH5_DOWN, 0);
   //digitalWrite(CH5_UP, 0);
   digitalWrite(FLIPPER_DIRECTION, 1);
@@ -56,26 +56,26 @@ void loop()
 {
   sBus.FeedLine();            //check for a full packet (>24bytes) available to read from port's rx buffer - if there, read it in, validate and store packet
                               //if not enough bytes waiting, do nothing right now
-                              
-  if (sBus.toChannels == 1)   //toChannels = 1 indicates a new packet was received and stored in sBus.sbusData[]
+
+  if (sBus.mToChannels == 1)   //mToChannels = 1 indicates a new packet was received and stored in sBus.sbusData[]
   {
     sBus.UpdateServos();      //echo sBus data back out on port's tx line
-    sBus.UpdateChannels();    //process data in sBus.sbusData[] and update sBus.channels[]
-    sBus.toChannels = 0;
-    
+    sBus.UpdateChannels();    //process data in sBus.sbusData[] and update sBus.mChannels[]
+    sBus.mToChannels = 0;
+
     /*
-    *  Now we can use the data in sBus.channels[] 
+    *  Now we can use the data in sBus.mChannels[]
     *
     */
-    
+
     /*
         //Set outputs for Channel 5
-    if(sBus.channels[4] < SERVO_LOW)
+    if(sBus.mChannels[4] < SERVO_LOW)
     {
       digitalWrite(CH5_DOWN, 0);
       digitalWrite(CH5_UP, 1);
     }
-    else if(sBus.channels[4] > SERVO_HIGH)
+    else if(sBus.mChannels[4] > SERVO_HIGH)
     {
       digitalWrite(CH5_DOWN, 1);
       digitalWrite(CH5_UP, 0);
@@ -84,10 +84,10 @@ void loop()
     {
       digitalWrite(CH5_DOWN, 1);
       digitalWrite(CH5_UP, 1);
-    }    
+    }
     */
-    
-    if(sBus.channels[4] > SERVO_HIGH)
+
+    if(sBus.Channel(5) > SERVO_HIGH)
     {
       digitalWrite(FLOWER_FAN, 0);
       digitalWrite(FLOWER_DISPENSER, 0);
@@ -96,16 +96,16 @@ void loop()
     {
       digitalWrite(FLOWER_FAN, 1);
       digitalWrite(FLOWER_DISPENSER, 1);
-    }    
-    
-    
+    }
+
+
     //Set outputs for Channel 6
-    if(sBus.channels[5] < SERVO_LOW)
+    if(sBus.Channel(6) < SERVO_LOW)
     {
       digitalWrite(FLIPPER_DIRECTION, 1);
       digitalWrite(FLIPPER_ENABLE, 0);
     }
-    else if(sBus.channels[5] > SERVO_HIGH)
+    else if(sBus.Channel(6) > SERVO_HIGH)
     {
       digitalWrite(FLIPPER_DIRECTION, 0);
       digitalWrite(FLIPPER_ENABLE, 0);
@@ -115,11 +115,10 @@ void loop()
       digitalWrite(FLIPPER_DIRECTION, 1);
       digitalWrite(FLIPPER_ENABLE, 1);
     }
-    
 
-    
+
     //Set output for Channel 7
-    if(sBus.channels[6] > SERVO_MID)
+    if(sBus.Channel(7) > SERVO_MID)
     {
       digitalWrite(CANNON, 0);
     }
@@ -127,8 +126,6 @@ void loop()
     {
       digitalWrite(CANNON, 1);
     }
-    
-    
-    //Serial<<sBus.channels[0]<<","<<sBus.channels[1]<<","<<sBus.channels[2]<<","<<sBus.channels[3]<<","<<sBus.channels[4]<<","<<sBus.channels[5]<<","<<sBus.channels[6]<<"\r\n";
+
   }
 }
